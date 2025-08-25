@@ -25,16 +25,23 @@ class SnakeGame:
         
         self.snake = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = (1, 0)
+        self.obstacles_enabled = True
+        self.waiting_for_obstacle_choice = False
         self.obstacles = self.generate_obstacles()
         self.food = self.generate_food()
         self.path = []
         self.path_width = 3
         self.game_over = False
         self.score = 0
+        self.start_time = pygame.time.get_ticks()
+        self.path_delay = 5000  # 5 seconds in milliseconds
         
         self.generate_path_to_food()
     
     def generate_obstacles(self):
+        if not self.obstacles_enabled:
+            return set()
+            
         obstacles = set()
         num_obstacles = 15
         
@@ -67,21 +74,12 @@ class SnakeGame:
         g_score = {start: 0}
         f_score = {start: heuristic(start, target)}
         
-        # Ensure first step goes in current direction
-        first_step = (start[0] + self.direction[0], start[1] + self.direction[1])
-        if (0 <= first_step[0] < GRID_WIDTH and 0 <= first_step[1] < GRID_HEIGHT and 
-            first_step not in self.obstacles):
-            came_from[first_step] = start
-            g_score[first_step] = 1
-            f_score[first_step] = 1 + heuristic(first_step, target)
-            open_set.append((f_score[first_step], first_step))
-        
         while open_set:
             current = min(open_set, key=lambda x: x[0])[1]
             open_set = [(f, pos) for f, pos in open_set if pos != current]
             
             if current == target:
-                # Reconstruct path
+                # Reconstruct path including start position
                 path = []
                 while current in came_from:
                     path.append(current)
@@ -94,14 +92,14 @@ class SnakeGame:
                 neighbor = (current[0] + dx, current[1] + dy)
                 
                 if (0 <= neighbor[0] < GRID_WIDTH and 0 <= neighbor[1] < GRID_HEIGHT and
-                    neighbor not in self.obstacles):
+                    neighbor not in self.obstacles and neighbor not in self.snake[1:]):
                     
                     tentative_g = g_score.get(current, float('inf')) + 1
                     
                     if neighbor not in g_score or tentative_g < g_score[neighbor]:
                         came_from[neighbor] = current
-                        g_score[neighbor] = tentative_g
-                        f_score[neighbor] = tentative_g + heuristic(neighbor, target)
+                        g_score[neighbor] = int(tentative_g)
+                        f_score[neighbor] = int(tentative_g + heuristic(neighbor, target))
                         
                         if (f_score[neighbor], neighbor) not in open_set:
                             open_set.append((f_score[neighbor], neighbor))
@@ -173,7 +171,27 @@ class SnakeGame:
                     self.direction = (-1, 0)
                 elif event.key == pygame.K_RIGHT and self.direction != (-1, 0):
                     self.direction = (1, 0)
+                elif event.key == pygame.K_r and self.game_over:
+                    self.waiting_for_obstacle_choice = True
+                elif event.key == pygame.K_y and self.waiting_for_obstacle_choice:
+                    self.obstacles_enabled = True
+                    self.restart_game()
+                elif event.key == pygame.K_n and self.waiting_for_obstacle_choice:
+                    self.obstacles_enabled = False
+                    self.restart_game()
         return True
+    
+    def restart_game(self):
+        self.snake = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
+        self.direction = (1, 0)
+        self.obstacles = self.generate_obstacles()
+        self.food = self.generate_food()
+        self.path = []
+        self.game_over = False
+        self.score = 0
+        self.start_time = pygame.time.get_ticks()
+        self.waiting_for_obstacle_choice = False
+        self.generate_path_to_food()
     
     def update(self):
         if self.game_over:
@@ -199,8 +217,9 @@ class SnakeGame:
             self.game_over = True
             return
         
-        # Check if off path
-        if not self.is_on_path(new_head):
+        # Check if off path (only after delay period)
+        current_time = pygame.time.get_ticks()
+        if current_time - self.start_time >= self.path_delay and not self.is_on_path(new_head):
             self.game_over = True
             return
         
@@ -218,16 +237,18 @@ class SnakeGame:
     def draw(self):
         self.screen.fill(BLACK)
         
-        # Draw path with gradient
-        for i, path_pos in enumerate(self.path):
-            for dx in range(-self.path_width, self.path_width + 1):
-                for dy in range(-self.path_width, self.path_width + 1):
-                    draw_x = path_pos[0] + dx
-                    draw_y = path_pos[1] + dy
-                    if 0 <= draw_x < GRID_WIDTH and 0 <= draw_y < GRID_HEIGHT:
-                        color = self.get_plasma_color((draw_x, draw_y))
-                        pygame.draw.rect(self.screen, color,
-                                       (draw_x * CELL_SIZE, draw_y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        # Draw path with gradient (only after delay)
+        current_time = pygame.time.get_ticks()
+        if current_time - self.start_time >= self.path_delay:
+            for i, path_pos in enumerate(self.path):
+                for dx in range(-self.path_width, self.path_width + 1):
+                    for dy in range(-self.path_width, self.path_width + 1):
+                        draw_x = path_pos[0] + dx
+                        draw_y = path_pos[1] + dy
+                        if 0 <= draw_x < GRID_WIDTH and 0 <= draw_y < GRID_HEIGHT:
+                            color = self.get_plasma_color((draw_x, draw_y))
+                            pygame.draw.rect(self.screen, color,
+                                           (draw_x * CELL_SIZE, draw_y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         
         # Draw obstacles
         for obstacle in self.obstacles:
@@ -251,9 +272,14 @@ class SnakeGame:
         
         # Draw game over message
         if self.game_over:
-            game_over_text = font.render("Game Over! Press ESC to quit", True, WHITE)
-            text_rect = game_over_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
-            self.screen.blit(game_over_text, text_rect)
+            if self.waiting_for_obstacle_choice:
+                choice_text = font.render("Enable obstacles? Press Y for Yes, N for No", True, WHITE)
+                text_rect = choice_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                self.screen.blit(choice_text, text_rect)
+            else:
+                game_over_text = font.render("Game Over! Press R to restart or ESC to quit", True, WHITE)
+                text_rect = game_over_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                self.screen.blit(game_over_text, text_rect)
         
         pygame.display.flip()
     
