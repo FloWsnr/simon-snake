@@ -1,6 +1,7 @@
 # Path Following Snake Game
 
 A unique twist on the classic Snake game where you must follow a colored path to reach the food!
+Coded with Claude, so expect some errors or weird choices...
 
 ## Features
 
@@ -53,7 +54,7 @@ A unique twist on the classic Snake game where you must follow a colored path to
 ## Download Pre-built Executable (Windows)
 
 ### From GitHub Releases (Recommended)
-1. Go to the [Releases page](../../releases) 
+1. Go to the [Releases page](../../releases)
 2. Download `snake-game-windows.exe` from the latest release
 3. Run the executable directly - no Python installation required!
 

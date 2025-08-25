@@ -46,3 +46,14 @@ jobs:
         asset_path: dist/snake_game.exe
         asset_name: snake-game-windows.exe
         asset_content_type: application/octet-stream
+    
+    - name: Upload to latest release
+      if: github.event_name != 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        files: dist/snake_game.exe
+        name: Latest Build
+        body: Automatically generated build from latest commit
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
