@@ -83,5 +83,9 @@ The game is fully compatible with Windows and requires no complex installation -
   ```
 
   ```bash
+  # Basic executable (with console window)
   pyinstaller --onefile snake_game.py
+  
+  # Executable without console window (recommended)
+  pyinstaller --onefile --windowed snake_game.py
   ```

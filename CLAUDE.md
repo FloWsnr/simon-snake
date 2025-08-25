@@ -31,9 +31,26 @@ pip install pyinstaller
 # Create standalone executable
 pyinstaller --onefile snake_game.py
 
+# Create standalone executable without console window
+pyinstaller --onefile --windowed snake_game.py
+
 # Or use the existing spec file
 pyinstaller snake_game.spec
 ```
+
+### GitHub Actions CI/CD
+The repository includes automated Windows executable builds:
+
+- **Workflow File**: `.github/workflows/build-windows.yml`
+- **Triggers**: Push to main, PRs, releases, manual dispatch
+- **Permissions**: Requires `contents: write` for creating releases
+- **Output**: Windows executable (`snake_game.exe`) 
+- **Distribution**: 
+  - Artifacts available in Actions tab for all builds
+  - Automatic "latest" release created/updated on each push to main
+  - Manual releases get executable attached when created properly
+
+**Important**: To get executables in manual releases, create the release AFTER the workflow exists, or trigger the workflow after release creation.
 
 ## Code Architecture
 
