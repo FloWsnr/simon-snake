@@ -50,6 +50,20 @@ A unique twist on the classic Snake game where you must follow a colored path to
 - Path is colored with plasma gradient (blue → purple → red → yellow)
 - Path width is 3 cells on each side for easier navigation
 
+## Download Pre-built Executable (Windows)
+
+### From GitHub Releases (Recommended)
+1. Go to the [Releases page](../../releases) 
+2. Download `snake-game-windows.exe` from the latest release
+3. Run the executable directly - no Python installation required!
+
+### From GitHub Actions (Latest Build)
+If no releases are available, you can download the latest build:
+1. Go to the [Actions tab](../../actions)
+2. Click on the latest "Build Windows Executable" workflow run
+3. Download the `snake-game-windows` artifact
+4. Extract and run `snake_game.exe`
+
 ## Windows Compatibility
 
 The game is fully compatible with Windows and requires no complex installation - just Python and Pygame.
