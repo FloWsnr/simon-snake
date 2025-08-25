@@ -11,7 +11,7 @@ This is a Python-based "Path Following Snake Game" - a unique twist on classic S
 ### Running the Game
 ```bash
 # Activate the conda environment (if using conda)
-conda activate snake
+conda activate simon-snake
 
 # Run the main game
 python snake_game.py

@@ -31,13 +31,13 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name=SnakeGame --add-data="*.py;." snake_game.py
+        pyinstaller --onefile --windowed --name=SimonSnakeGame --add-data="*.py;." snake_game.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: snake-game-windows
-        path: dist/snake_game.exe
+        name: simon-snake-game-windows
+        path: dist/SimonSnakeGame.exe
 
     - name: Upload to release
       if: github.event_name == 'release'
@@ -46,8 +46,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: dist/snake_game.exe
-        asset_name: snake-game-windows.exe
+        asset_path: dist/SimonSnakeGame.exe
+        asset_name: simon-snake-game-windows.exe
         asset_content_type: application/octet-stream
     
     - name: Upload to latest release
@@ -55,7 +55,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: latest
-        files: dist/snake_game.exe
+        files: dist/SimonSnakeGame.exe
         name: Latest Build
         body: Automatically generated build from latest commit
       env:

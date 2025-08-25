@@ -18,9 +18,9 @@ Coded with Claude, so expect some errors or weird choices...
 
 ## How to Play
 
-1. **Activate the snake conda environment**:
+1. **Activate the simon-snake conda environment**:
    ```bash
-   conda activate snake
+   conda activate simon-snake
    ```
 
 2. **Run the game**:
@@ -73,7 +73,7 @@ The game is fully compatible with Windows and requires no complex installation -
 
 - **ALSA warnings on Linux/WSL**: These audio warnings can be safely ignored
 - **Module not found**: Make sure pygame is installed: `pip install pygame`
-- **Game doesn't start**: Ensure you're in the correct conda environment: `conda activate snake`
+- **Game doesn't start**: Ensure you're in the correct conda environment: `conda activate simon-snake`
 
 ## Development
 
