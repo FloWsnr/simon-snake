@@ -37,6 +37,8 @@ class SnakeGame:
         self.score = 0
         self.start_time = pygame.time.get_ticks()
         self.path_delay = 5000  # 5 seconds in milliseconds
+        self.path_generated = False  # Track if initial path has been generated
+        self.obstacle_choice_made = False  # Track if obstacle choice has been made
 
     def generate_obstacles(self):
         if not self.obstacles_enabled:
@@ -112,8 +114,8 @@ class SnakeGame:
 
                     if neighbor not in g_score or tentative_g < g_score[neighbor]:
                         came_from[neighbor] = current
-                        g_score[neighbor] = tentative_g
-                        f_score[neighbor] = tentative_g + heuristic(neighbor, target)
+                        g_score[neighbor] = int(tentative_g)
+                        f_score[neighbor] = int(tentative_g + heuristic(neighbor, target))
 
                         # Check if neighbor is not already in open_set before adding
                         if not any(pos == neighbor for _, pos in open_set):
@@ -210,15 +212,17 @@ class SnakeGame:
                 elif event.key == pygame.K_RIGHT and self.direction != (-1, 0):
                     self.direction = (1, 0)
                 elif event.key == pygame.K_r and self.game_over:
-                    self.waiting_for_obstacle_choice = True
+                    self.restart_game()
                 elif event.key == pygame.K_y and self.waiting_for_obstacle_choice:
                     self.obstacles_enabled = True
+                    self.obstacle_choice_made = True
                     if self.game_over:
                         self.restart_game()
                     else:
                         self.start_game()
                 elif event.key == pygame.K_n and self.waiting_for_obstacle_choice:
                     self.obstacles_enabled = False
+                    self.obstacle_choice_made = True
                     if self.game_over:
                         self.restart_game()
                     else:
@@ -231,24 +235,40 @@ class SnakeGame:
         self.game_started = True
         self.waiting_for_obstacle_choice = False
         self.start_time = pygame.time.get_ticks()
-        self.generate_path_to_food()
+        self.path_generated = False  # Track if initial path has been generated
+        # Don't generate path here - wait for 5 seconds
 
     def restart_game(self):
         self.snake = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = (1, 0)
-        self.obstacles = self.generate_obstacles()
+        self.obstacles = self.generate_obstacles()  # Generate new random obstacles each restart
         self.food = self.generate_food()
         self.path = []
         self.game_over = False
         self.score = 0
         self.start_time = pygame.time.get_ticks()
-        self.waiting_for_obstacle_choice = False
+        # Only show obstacle choice if it hasn't been made yet
+        self.waiting_for_obstacle_choice = not self.obstacle_choice_made
         self.game_started = True
-        self.generate_path_to_food()
+        self.path_generated = False  # Track if initial path has been generated
+        # Don't generate path here - wait for 5 seconds
 
     def update(self):
         if self.game_over or not self.game_started:
             return
+
+        current_time = pygame.time.get_ticks()
+
+        # Generate the initial path exactly at the 5-second mark
+        if (
+            not self.path_generated
+            and current_time - self.start_time >= self.path_delay
+        ):
+            self.generate_path_to_food()
+            self.path_generated = True
+            print(
+                f"Initial path generated at 5-second mark from {self.snake[0]} to {self.food}"
+            )
 
         # Move snake
         head_x, head_y = self.snake[0]
@@ -274,11 +294,8 @@ class SnakeGame:
             self.game_over = True
             return
 
-        # Check if off path (only after delay period)
-        current_time = pygame.time.get_ticks()
-        if current_time - self.start_time >= self.path_delay and not self.is_on_path(
-            new_head
-        ):
+        # Check if off path (only after delay period and after path is generated)
+        if self.path_generated and not self.is_on_path(new_head):
             self.game_over = True
             print(f"Game over: Snake at {new_head} is off path")
             return
@@ -298,9 +315,8 @@ class SnakeGame:
     def draw(self):
         self.screen.fill(BLACK)
 
-        # Draw path with gradient (only after delay)
-        current_time = pygame.time.get_ticks()
-        if current_time - self.start_time >= self.path_delay and self.path:
+        # Draw path with gradient (only after it's generated at the 5-second mark)
+        if self.path_generated and self.path:
             # Draw the path
             for i, path_pos in enumerate(self.path):
                 for dx in range(-self.path_width, self.path_width + 1):
@@ -381,13 +397,24 @@ class SnakeGame:
                 (segment[0] * CELL_SIZE, segment[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE),
             )
 
-        # Draw score
+        # Draw score and timer
         font = pygame.font.Font(None, 36)
         score_text = font.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(score_text, (10, 10))
 
+        # Draw countdown timer before path appears
+        if not self.path_generated and self.game_started:
+            current_time = pygame.time.get_ticks()
+            time_left = max(0, self.path_delay - (current_time - self.start_time))
+            seconds_left = time_left // 1000 + (1 if time_left % 1000 > 0 else 0)
+            timer_font = pygame.font.Font(None, 28)
+            timer_text = timer_font.render(
+                f"Path appears in: {seconds_left}s", True, WHITE
+            )
+            self.screen.blit(timer_text, (10, 50))
+
         # Draw debug info
-        if self.path and current_time - self.start_time >= self.path_delay:
+        if self.path_generated and self.path:
             debug_font = pygame.font.Font(None, 24)
             debug_text = debug_font.render(
                 f"Path: {self.path[0]} → {self.path[-1]}", True, WHITE
