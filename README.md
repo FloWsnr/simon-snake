@@ -59,3 +59,14 @@ The game is fully compatible with Windows and requires no complex installation -
 - **ALSA warnings on Linux/WSL**: These audio warnings can be safely ignored
 - **Module not found**: Make sure pygame is installed: `pip install pygame`
 - **Game doesn't start**: Ensure you're in the correct conda environment: `conda activate snake`
+
+## Development
+
+- Use pyinstaller to create a standalone executable:
+  ```bash
+  pip install pyinstaller
+  ```
+
+  ```bash
+  pyinstaller --onefile snake_game.py
+  ```

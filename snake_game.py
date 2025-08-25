@@ -40,6 +40,13 @@ class SnakeGame:
         self.path_generated = False  # Track if initial path has been generated
         self.obstacle_choice_made = False  # Track if obstacle choice has been made
 
+        # Add input handling improvements
+        self.last_direction_change = 0
+        self.direction_change_delay = (
+            100  # Minimum milliseconds between direction changes
+        )
+        self.pending_direction = None
+
     def generate_obstacles(self):
         if not self.obstacles_enabled:
             return set()
@@ -115,7 +122,9 @@ class SnakeGame:
                     if neighbor not in g_score or tentative_g < g_score[neighbor]:
                         came_from[neighbor] = current
                         g_score[neighbor] = int(tentative_g)
-                        f_score[neighbor] = int(tentative_g + heuristic(neighbor, target))
+                        f_score[neighbor] = int(
+                            tentative_g + heuristic(neighbor, target)
+                        )
 
                         # Check if neighbor is not already in open_set before adding
                         if not any(pos == neighbor for _, pos in open_set):
@@ -199,19 +208,14 @@ class SnakeGame:
         return False
 
     def handle_input(self):
+        current_time = pygame.time.get_ticks()
+
+        # Handle events (for one-time actions)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and self.direction != (0, 1):
-                    self.direction = (0, -1)
-                elif event.key == pygame.K_DOWN and self.direction != (0, -1):
-                    self.direction = (0, 1)
-                elif event.key == pygame.K_LEFT and self.direction != (1, 0):
-                    self.direction = (-1, 0)
-                elif event.key == pygame.K_RIGHT and self.direction != (-1, 0):
-                    self.direction = (1, 0)
-                elif event.key == pygame.K_r and self.game_over:
+                if event.key == pygame.K_r and self.game_over:
                     self.restart_game()
                 elif event.key == pygame.K_y and self.waiting_for_obstacle_choice:
                     self.obstacles_enabled = True
@@ -227,6 +231,36 @@ class SnakeGame:
                         self.restart_game()
                     else:
                         self.start_game()
+
+        # Handle continuous input (movement keys) using key state
+        if (
+            self.game_started
+            and not self.game_over
+            and not self.waiting_for_obstacle_choice
+        ):
+            keys = pygame.key.get_pressed()
+            new_direction = None
+
+            # Check for direction changes with anti-reversal logic
+            if keys[pygame.K_UP] and self.direction != (0, 1):
+                new_direction = (0, -1)
+            elif keys[pygame.K_DOWN] and self.direction != (0, -1):
+                new_direction = (0, 1)
+            elif keys[pygame.K_LEFT] and self.direction != (1, 0):
+                new_direction = (-1, 0)
+            elif keys[pygame.K_RIGHT] and self.direction != (-1, 0):
+                new_direction = (1, 0)
+
+            # Apply direction change with debouncing to prevent too rapid changes
+            if (
+                new_direction
+                and current_time - self.last_direction_change
+                > self.direction_change_delay
+            ):
+                self.direction = new_direction
+                self.last_direction_change = current_time
+                print(f"Direction changed to: {self.direction}")
+
         return True
 
     def start_game(self):
@@ -241,7 +275,9 @@ class SnakeGame:
     def restart_game(self):
         self.snake = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = (1, 0)
-        self.obstacles = self.generate_obstacles()  # Generate new random obstacles each restart
+        self.obstacles = (
+            self.generate_obstacles()
+        )  # Generate new random obstacles each restart
         self.food = self.generate_food()
         self.path = []
         self.game_over = False
@@ -251,6 +287,7 @@ class SnakeGame:
         self.waiting_for_obstacle_choice = not self.obstacle_choice_made
         self.game_started = True
         self.path_generated = False  # Track if initial path has been generated
+        self.last_direction_change = 0  # Reset direction change timer
         # Don't generate path here - wait for 5 seconds
 
     def update(self):
@@ -456,7 +493,7 @@ class SnakeGame:
 
             self.update()
             self.draw()
-            self.clock.tick(8)  # Moderate speed
+            self.clock.tick(12)  # Slightly increased FPS for better responsiveness
 
         pygame.quit()
 
