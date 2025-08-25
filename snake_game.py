@@ -26,7 +26,14 @@ class SnakeGame:
 
         self.obstacles_enabled = True
         self.waiting_for_obstacle_choice = True
+        self.waiting_for_speed_choice = False
         self.game_started = False
+        
+        # Speed settings
+        self.speed_options = ["Slow", "Medium", "Fast"]
+        self.speed_delays = [8, 5, 3]  # frames between moves (higher = slower)
+        self.selected_speed = 1  # Default to Medium
+        self.move_counter = 0
         self.snake = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = (1, 0)
         self.obstacles = set()
@@ -220,13 +227,30 @@ class SnakeGame:
                 elif event.key == pygame.K_y and self.waiting_for_obstacle_choice:
                     self.obstacles_enabled = True
                     self.obstacle_choice_made = True
+                    self.waiting_for_obstacle_choice = False
+                    self.waiting_for_speed_choice = True
+                elif event.key == pygame.K_n and self.waiting_for_obstacle_choice:
+                    self.obstacles_enabled = False
+                    self.obstacle_choice_made = True
+                    self.waiting_for_obstacle_choice = False
+                    self.waiting_for_speed_choice = True
+                elif event.key == pygame.K_1 and self.waiting_for_speed_choice:
+                    self.selected_speed = 0  # Slow
+                    self.waiting_for_speed_choice = False
                     if self.game_over:
                         self.restart_game()
                     else:
                         self.start_game()
-                elif event.key == pygame.K_n and self.waiting_for_obstacle_choice:
-                    self.obstacles_enabled = False
-                    self.obstacle_choice_made = True
+                elif event.key == pygame.K_2 and self.waiting_for_speed_choice:
+                    self.selected_speed = 1  # Medium
+                    self.waiting_for_speed_choice = False
+                    if self.game_over:
+                        self.restart_game()
+                    else:
+                        self.start_game()
+                elif event.key == pygame.K_3 and self.waiting_for_speed_choice:
+                    self.selected_speed = 2  # Fast
+                    self.waiting_for_speed_choice = False
                     if self.game_over:
                         self.restart_game()
                     else:
@@ -237,6 +261,7 @@ class SnakeGame:
             self.game_started
             and not self.game_over
             and not self.waiting_for_obstacle_choice
+            and not self.waiting_for_speed_choice
         ):
             keys = pygame.key.get_pressed()
             new_direction = None
@@ -285,6 +310,8 @@ class SnakeGame:
         self.start_time = pygame.time.get_ticks()
         # Only show obstacle choice if it hasn't been made yet
         self.waiting_for_obstacle_choice = not self.obstacle_choice_made
+        self.waiting_for_speed_choice = False
+        self.move_counter = 0
         self.game_started = True
         self.path_generated = False  # Track if initial path has been generated
         self.last_direction_change = 0  # Reset direction change timer
@@ -306,6 +333,12 @@ class SnakeGame:
             print(
                 f"Initial path generated at 5-second mark from {self.snake[0]} to {self.food}"
             )
+
+        # Only move snake based on speed setting
+        self.move_counter += 1
+        if self.move_counter < self.speed_delays[self.selected_speed]:
+            return
+        self.move_counter = 0
 
         # Move snake
         head_x, head_y = self.snake[0]
@@ -472,6 +505,19 @@ class SnakeGame:
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
             )
             self.screen.blit(choice_text, text_rect)
+        elif self.waiting_for_speed_choice:
+            title_text = font.render("Choose Speed:", True, WHITE)
+            title_rect = title_text.get_rect(
+                center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 60)
+            )
+            self.screen.blit(title_text, title_rect)
+            
+            for i, speed in enumerate(self.speed_options):
+                speed_text = font.render(f"{i+1}. {speed}", True, WHITE)
+                speed_rect = speed_text.get_rect(
+                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 20 + i * 30)
+                )
+                self.screen.blit(speed_text, speed_rect)
         elif self.game_over:
             game_over_text = font.render(
                 "Game Over! Press R to restart or ESC to quit", True, WHITE
@@ -493,7 +539,7 @@ class SnakeGame:
 
             self.update()
             self.draw()
-            self.clock.tick(12)  # Slightly increased FPS for better responsiveness
+            self.clock.tick(60)  # High FPS for responsive input while snake moves at variable speed
 
         pygame.quit()
 
