@@ -30,6 +30,7 @@ A unique twist on the classic Snake game where you must follow a colored path to
 3. **Controls**:
    - **Arrow Keys**: Control the snake direction
    - **ESC**: Quit the game
+   - **R**: Restart the game after a game over
 
 ## Game Rules
 
