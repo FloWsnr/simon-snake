@@ -5,6 +5,7 @@ export_presets.cfg
 
 # Godot export templates (large binaries)
 templates/
+*.tpz
 
 # Godot editor files
 .godot/
