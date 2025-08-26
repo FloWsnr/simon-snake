@@ -1,34 +1,32 @@
 # Path Following Snake Game
 
 A unique twist on the classic Snake game where you must follow a colored path to reach the food!
-Coded with Claude, so expect some errors or weird choices...
+Built with Godot 4.4.1 and coded with Claude, so expect some errors or weird choices...
 
 ## Features
 
 - **Path Following Gameplay**: Instead of freely moving around, you must follow a generated path from your snake to the food
 - **Plasma Gradient Path**: The path uses a beautiful plasma colormap - blue at the snake position transitioning to yellow at the food
-- **Obstacles**: Random obstacles are placed throughout the game field
-- **Moderate Speed**: Comfortable gameplay speed
+- **Obstacles**: Optional randomly placed obstacles throughout the game field
+- **Multiple Speed Settings**: Choose between Slow, Medium, and Fast gameplay speeds
 - **Path Width**: The path is wide enough (3 cells) to make it easier to stay on track
 
 ## Requirements
 
-- Python 3.x
-- Pygame (`pip install pygame`)
+- Godot 4.4.1 or compatible version
 
 ## How to Play
 
-1. **Activate the simon-snake conda environment**:
+1. **Run the game**:
    ```bash
-   conda activate simon-snake
+   godot --path .
+   ```
+   Or with full path to Godot executable:
+   ```bash
+   /path/to/Godot_v4.4.1-stable_linux.x86_64 --path /home/flwi/Coding/snake
    ```
 
-2. **Run the game**:
-   ```bash
-   python snake_game.py
-   ```
-
-3. **Controls**:
+2. **Controls**:
    - **Arrow Keys**: Control the snake direction
    - **ESC**: Quit the game
    - **R**: Restart the game after a game over
@@ -51,41 +49,48 @@ Coded with Claude, so expect some errors or weird choices...
 - Path is colored with plasma gradient (blue → purple → red → yellow)
 - Path width is 3 cells on each side for easier navigation
 
-## Download Pre-built Executable (Windows)
+## Download Pre-built Executables
 
 ### From GitHub Releases (Recommended)
 1. Go to the [Releases page](../../releases)
-2. Download `snake-game-windows.exe` from the latest release
-3. Run the executable directly - no Python installation required!
+2. Download the appropriate executable for your platform:
+   - **Windows**: `SimonSnakeGame.exe`
+   - **Linux**: `SimonSnakeGame.x86_64`
+   - **Web**: Download the web build folder
+3. Run the executable directly - no Godot installation required!
 
 ### From GitHub Actions (Latest Build)
 If no releases are available, you can download the latest build:
 1. Go to the [Actions tab](../../actions)
-2. Click on the latest "Build Windows Executable" workflow run
-3. Download the `snake-game-windows` artifact
-4. Extract and run `snake_game.exe`
+2. Click on the latest "Build Godot Game" workflow run
+3. Download the appropriate platform artifact:
+   - `windows-build` - Contains `SimonSnakeGame.exe`
+   - `linux-build` - Contains `SimonSnakeGame.x86_64`
+   - `web-build` - Contains web version files
+4. Extract and run the executable
 
-## Windows Compatibility
+## Cross-Platform Compatibility
 
-The game is fully compatible with Windows and requires no complex installation - just Python and Pygame.
+The game is built with Godot and runs natively on Windows, Linux, and Web browsers with no additional dependencies.
 
 ## Troubleshooting
 
-- **ALSA warnings on Linux/WSL**: These audio warnings can be safely ignored
-- **Module not found**: Make sure pygame is installed: `pip install pygame`
-- **Game doesn't start**: Ensure you're in the correct conda environment: `conda activate simon-snake`
+- **Game doesn't start**: Make sure you have the correct executable permissions on Linux
+- **Web version issues**: Serve the web build from a local server (not file:// protocol)
+- **Performance issues**: Try adjusting the game speed setting in the initial menu
 
 ## Development
 
-- Use pyinstaller to create a standalone executable:
-  ```bash
-  pip install pyinstaller
-  ```
+### Building Executables
+```bash
+# Export using Godot (requires export templates)
+godot --headless --export-release "Windows Desktop" builds/windows/SimonSnakeGame.exe
+godot --headless --export-release "Linux" builds/linux/SimonSnakeGame.x86_64
+godot --headless --export-release "Web" builds/web/index.html
+```
 
-  ```bash
-  # Basic executable (with console window)
-  pyinstaller --onefile snake_game.py
-  
-  # Executable without console window (recommended)
-  pyinstaller --onefile --windowed snake_game.py
-  ```
+### Testing
+```bash
+# Run the Godot project validation test
+python test_godot.py
+```

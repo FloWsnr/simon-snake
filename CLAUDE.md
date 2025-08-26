@@ -24,8 +24,15 @@ godot --headless --path .
 
 ### Testing
 ```bash
-# Run the Godot project validation test
-python test_godot.py
+# Run the GDScript unit test suite
+godot --headless --script test_runner.gd
+
+# Or run specific test suites individually:
+godot --headless --script test/test_game_mechanics.gd
+godot --headless --script test/test_pathfinding.gd
+
+# Run tests with visual output (for debugging)
+godot --path . test_scene.tscn
 ```
 
 ### Building Executables
@@ -90,7 +97,6 @@ The repository includes automated multi-platform Godot builds:
 
 - **Godot 4.4.1**: Game engine and runtime
 - **GDScript**: Primary programming language (built into Godot)
-- **Python 3.x**: For testing scripts (optional)
 
 
 ## File Structure
@@ -99,5 +105,25 @@ The repository includes automated multi-platform Godot builds:
 - `scenes/Main.tscn`: Main game scene
 - `scripts/GameBoard.gd`: Main game logic
 - `icon.svg`: Project icon
-- `test_godot.py`: Project validation test
+- `test_runner.gd`: Main test runner script
+- `test_scene.tscn`: Test runner scene
+- `test/test_game_mechanics.gd`: Core game mechanics unit tests
+- `test/test_pathfinding.gd`: A* pathfinding algorithm tests
 - `.github/workflows/build-godot.yml`: Godot build pipeline
+
+## Testing Architecture
+
+The project uses GDScript-based unit tests that run directly in the Godot engine:
+
+- **test_runner.gd**: Orchestrates all test suites and provides summary output
+- **test_scene.tscn**: Scene file for running tests with visual feedback
+- **test/test_game_mechanics.gd**: Tests core gameplay (movement, collision, food generation, etc.)
+- **test/test_pathfinding.gd**: Tests A* algorithm implementation and path validation
+
+Tests cover:
+- Game initialization and state management
+- Snake movement and collision detection
+- Food and obstacle generation
+- A* pathfinding algorithm correctness
+- Path validation and plasma color generation
+- Performance benchmarks for pathfinding
