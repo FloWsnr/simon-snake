@@ -4,64 +4,67 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python-based "Path Following Snake Game" - a unique twist on classic Snake where the player must follow a generated colored path to reach food. The game uses pygame for graphics and implements A* pathfinding for path generation.
+This is a "Path Following Snake Game" - a unique twist on classic Snake where the player must follow a generated colored path to reach food. The game has been converted from Python/pygame to Godot 4.4.1 and implements A* pathfinding for path generation.
+
+**Note:** This project has been fully converted from pygame to Godot 4.4.1. All pygame files have been removed - the original pygame version is available in git history if needed.
 
 ## Development Commands
 
 ### Running the Game
 ```bash
-# Activate the conda environment (if using conda)
-conda activate simon-snake
+# Run with your local Godot installation
+/path/to/Godot_v4.4.1-stable_linux.x86_64 --path /home/flwi/Coding/snake
 
-# Run the main game
-python snake_game.py
+# Or if Godot is in PATH
+godot --path .
+
+# To run in the background/headless for testing
+godot --headless --path .
 ```
 
 ### Testing
 ```bash
-# Run the basic game test (uses dummy video driver)
-python test_game.py
+# Run the Godot project validation test
+python test_godot.py
 ```
 
-### Building Executable
+### Building Executables
 ```bash
-# Install pyinstaller if not already installed
-pip install pyinstaller
-
-# Create standalone executable
-pyinstaller --onefile snake_game.py
-
-# Create standalone executable without console window
-pyinstaller --onefile --windowed snake_game.py
-
-# Or use the existing spec file
-pyinstaller snake_game.spec
+# Export using Godot (requires export templates)
+godot --headless --export-release "Windows Desktop" builds/windows/SimonSnakeGame.exe
+godot --headless --export-release "Linux" builds/linux/SimonSnakeGame.x86_64
+godot --headless --export-release "Web" builds/web/index.html
 ```
 
 ### GitHub Actions CI/CD
-The repository includes automated Windows executable builds:
+The repository includes automated multi-platform Godot builds:
 
-- **Workflow File**: `.github/workflows/build-windows.yml`
+- **Workflow File**: `.github/workflows/build-godot.yml`
 - **Triggers**: Push to main, PRs, releases, manual dispatch
 - **Permissions**: Requires `contents: write` for creating releases
-- **Output**: Windows executable (`snake_game.exe`) 
+- **Output**: Multi-platform builds:
+  - Windows executable (`SimonSnakeGame.exe`)
+  - Linux executable (`SimonSnakeGame.x86_64`)
+  - Web version (`index.html` + assets)
 - **Distribution**: 
   - Artifacts available in Actions tab for all builds
   - Automatic "latest" release created/updated on each push to main
-  - Manual releases get executable attached when created properly
+  - Manual releases get executables attached when created properly
 
-**Important**: To get executables in manual releases, create the release AFTER the workflow exists, or trigger the workflow after release creation.
+**Note**: The workflow automatically downloads Godot 4.4.1 and export templates for consistent builds.
 
 ## Code Architecture
 
-### Main Game Class (`snake_game.py`)
-- **SnakeGame**: Single monolithic class containing all game logic
-- **Key Components**:
-  - Game state management (obstacle choice, speed selection, game over)
-  - A* pathfinding algorithm for path generation
-  - Plasma gradient coloring for path visualization
-  - Input handling with direction change debouncing
-  - Game loop with variable speed control
+### Main Game Scene (Godot)
+- **Main.tscn**: Root scene containing all game components
+- **GameBoard.gd**: Main game logic script (converted from SnakeGame class)
+- **Scene Structure**:
+  - GameBoard (Node2D) - core game logic
+  - PathRenderer (Node2D) - path visualization with plasma gradients
+  - Snake (Node2D) - snake body segments
+  - Food (ColorRect) - food item
+  - Obstacles (Node2D) - obstacle placement
+  - UI (CanvasLayer) - score, timer, and menu systems
 
 ### Core Game Mechanics
 - **Path Following**: Snake must stay on generated path or game ends
@@ -85,13 +88,16 @@ The repository includes automated Windows executable builds:
 
 ## Dependencies
 
-- **pygame**: Core game engine and graphics
-- **Python 3.x**: Base runtime
-- **pyinstaller**: For creating standalone executables (optional)
+- **Godot 4.4.1**: Game engine and runtime
+- **GDScript**: Primary programming language (built into Godot)
+- **Python 3.x**: For testing scripts (optional)
+
 
 ## File Structure
 
-- `snake_game.py`: Main game implementation
-- `test_game.py`: Basic functionality test
-- `snake_game.spec`: PyInstaller configuration
-- `build/` and `dist/`: Build artifacts (gitignored)
+- `project.godot`: Godot project configuration
+- `scenes/Main.tscn`: Main game scene
+- `scripts/GameBoard.gd`: Main game logic
+- `icon.svg`: Project icon
+- `test_godot.py`: Project validation test
+- `.github/workflows/build-godot.yml`: Godot build pipeline

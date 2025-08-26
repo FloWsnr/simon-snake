@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="128" height="128" fill="#000000"/>
+  
+  <!-- Snake body -->
+  <rect x="20" y="40" width="20" height="20" fill="#00aa00"/>
+  <rect x="40" y="40" width="20" height="20" fill="#00cc00"/>
+  <rect x="60" y="40" width="20" height="20" fill="#00ee00"/>
+  <rect x="80" y="40" width="20" height="20" fill="#00ff00"/>
+  
+  <!-- Snake head -->
+  <rect x="80" y="60" width="20" height="20" fill="#00ff00"/>
+  
+  <!-- Food -->
+  <rect x="100" y="80" width="20" height="20" fill="#ff0000"/>
+  
+  <!-- Path dots -->
+  <circle cx="90" cy="70" r="2" fill="#ff00ff"/>
+  <circle cx="95" cy="75" r="2" fill="#ff4400"/>
+  <circle cx="100" cy="80" r="2" fill="#ffaa00"/>
+  <circle cx="105" cy="85" r="2" fill="#ffff00"/>
+</svg>

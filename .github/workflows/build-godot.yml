@@ -1,0 +1,226 @@
+name: Build Godot Game
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-godot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Godot
+      run: |
+        wget https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+        unzip Godot_v4.4.1-stable_linux.x86_64.zip
+        chmod +x Godot_v4.4.1-stable_linux.x86_64
+        
+    - name: Download Godot Export Templates
+      run: |
+        wget https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+        mkdir -p ~/.local/share/godot/export_templates/4.4.1.stable
+        unzip Godot_v4.4.1-stable_export_templates.tpz
+        cp templates/* ~/.local/share/godot/export_templates/4.4.1.stable/
+
+    - name: Create export_presets.cfg
+      run: |
+        cat > export_presets.cfg << 'EOF'
+        [preset.0]
+
+        name="Windows Desktop"
+        platform="Windows Desktop"
+        runnable=true
+        dedicated_server=false
+        custom_features=""
+        export_filter="all_resources"
+        include_filter=""
+        exclude_filter=""
+        export_path="builds/windows/SimonSnakeGame.exe"
+        encryption_include_filters=""
+        encryption_exclude_filters=""
+        encrypt_pck=false
+        encrypt_directory=false
+        script_export_mode=1
+
+        [preset.0.options]
+
+        custom_template/debug=""
+        custom_template/release=""
+        debug/export_console_wrapper=1
+        binary_format/embed_pck=false
+        texture_format/bptc=true
+        texture_format/s3tc=true
+        texture_format/etc=false
+        texture_format/etc2=false
+        binary_format/architecture="x86_64"
+        codesign/enable=false
+        codesign/identity=""
+        codesign/password=""
+        codesign/timestamp=true
+        codesign/timestamp_server_url=""
+        codesign/digest_algorithm=1
+        codesign/description=""
+        codesign/custom_options=PackedStringArray()
+        application/modify_resources=true
+        application/icon=""
+        application/console_wrapper_icon=""
+        application/icon_interpolation=4
+        application/file_version=""
+        application/product_version=""
+        application/company_name=""
+        application/product_name=""
+        application/file_description=""
+        application/copyright=""
+        application/trademarks=""
+        application/export_angle=0
+        ssh_remote_deploy/enabled=false
+        ssh_remote_deploy/host="user@host_ip"
+        ssh_remote_deploy/port="22"
+        ssh_remote_deploy/extra_args_ssh=""
+        ssh_remote_deploy/extra_args_scp=""
+        ssh_remote_deploy/run_script=""
+        ssh_remote_deploy/cleanup_script=""
+
+        [preset.1]
+
+        name="Linux"
+        platform="Linux/X11"
+        runnable=true
+        dedicated_server=false
+        custom_features=""
+        export_filter="all_resources"
+        include_filter=""
+        exclude_filter=""
+        export_path="builds/linux/SimonSnakeGame.x86_64"
+        encryption_include_filters=""
+        encryption_exclude_filters=""
+        encrypt_pck=false
+        encrypt_directory=false
+        script_export_mode=1
+
+        [preset.1.options]
+
+        custom_template/debug=""
+        custom_template/release=""
+        debug/export_console_wrapper=1
+        binary_format/embed_pck=false
+        texture_format/bptc=true
+        texture_format/s3tc=true
+        texture_format/etc=false
+        texture_format/etc2=false
+        binary_format/architecture="x86_64"
+        ssh_remote_deploy/enabled=false
+        ssh_remote_deploy/host="user@host_ip"
+        ssh_remote_deploy/port="22"
+        ssh_remote_deploy/extra_args_ssh=""
+        ssh_remote_deploy/extra_args_scp=""
+        ssh_remote_deploy/run_script=""
+        ssh_remote_deploy/cleanup_script=""
+
+        [preset.2]
+
+        name="Web"
+        platform="Web"
+        runnable=true
+        dedicated_server=false
+        custom_features=""
+        export_filter="all_resources"
+        include_filter=""
+        exclude_filter=""
+        export_path="builds/web/index.html"
+        encryption_include_filters=""
+        encryption_exclude_filters=""
+        encrypt_pck=false
+        encrypt_directory=false
+        script_export_mode=1
+
+        [preset.2.options]
+
+        custom_template/debug=""
+        custom_template/release=""
+        variant/extensions_support=false
+        vram_texture_compression/for_desktop=true
+        vram_texture_compression/for_mobile=false
+        html/export_icon=true
+        html/custom_html_shell=""
+        html/head_include=""
+        html/canvas_resize_policy=2
+        html/focus_canvas_on_start=true
+        html/experimental_virtual_keyboard=false
+        progressive_web_app/enabled=false
+        progressive_web_app/offline_page=""
+        progressive_web_app/display=1
+        progressive_web_app/orientation=0
+        progressive_web_app/icon_144x144=""
+        progressive_web_app/icon_180x180=""
+        progressive_web_app/icon_512x512=""
+        progressive_web_app/background_color=Color(0, 0, 0, 1)
+        EOF
+
+    - name: Create builds directory
+      run: mkdir -p builds/windows builds/linux builds/web
+
+    - name: Export Windows
+      run: |
+        ./Godot_v4.4.1-stable_linux.x86_64 --headless --export-release "Windows Desktop" builds/windows/SimonSnakeGame.exe
+
+    - name: Export Linux
+      run: |
+        ./Godot_v4.4.1-stable_linux.x86_64 --headless --export-release "Linux" builds/linux/SimonSnakeGame.x86_64
+
+    - name: Export Web
+      run: |
+        ./Godot_v4.4.1-stable_linux.x86_64 --headless --export-release "Web" builds/web/index.html
+
+    - name: Upload Windows Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: simon-snake-game-windows
+        path: builds/windows/
+
+    - name: Upload Linux Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: simon-snake-game-linux
+        path: builds/linux/
+
+    - name: Upload Web Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: simon-snake-game-web
+        path: builds/web/
+
+    - name: Upload to release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          builds/windows/SimonSnakeGame.exe
+          builds/linux/SimonSnakeGame.x86_64
+          builds/web/index.html
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload to latest release
+      if: github.event_name != 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        files: |
+          builds/windows/SimonSnakeGame.exe
+          builds/linux/SimonSnakeGame.x86_64
+          builds/web/index.html
+        name: Latest Build
+        body: Automatically generated Godot build from latest commit
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
