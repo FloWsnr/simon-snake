@@ -4,126 +4,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a "Path Following Snake Game" - a unique twist on classic Snake where the player must follow a generated colored path to reach food. The game has been converted from Python/pygame to Godot 4.4.1 and implements A* pathfinding for path generation.
-
-**Note:** This project has been fully converted from pygame to Godot 4.4.1. All pygame files have been removed - the original pygame version is available in git history if needed.
+This is a Godot 4.4.1 game project implementing a unique Snake variant called "Path Following Snake Game." The player must follow a colored plasma-gradient path from their snake's head to food, adding a pathfinding puzzle element to the classic Snake gameplay.
 
 ## Development Commands
 
 ### Running the Game
 ```bash
-# Run with your local Godot installation
-/path/to/Godot_v4.4.1-stable_linux.x86_64 --path /home/flwi/Coding/snake
-
-# Or if Godot is in PATH
+# Run with Godot engine
 godot --path .
 
-# To run in the background/headless for testing
-godot --headless --path .
-```
-
-### Testing
-```bash
-# Run the GDScript unit test suite
-godot --headless --script test_runner.gd
-
-# Or run specific test suites individually:
-godot --headless --script test/test_game_mechanics.gd
-godot --headless --script test/test_pathfinding.gd
-
-# Run tests with visual output (for debugging)
-godot --path . test_scene.tscn
+# Or with full path to Godot executable
+/path/to/Godot_v4.4.1-stable_linux.x86_64 --path /home/flwi/Coding/snake
 ```
 
 ### Building Executables
 ```bash
-# Export using Godot (requires export templates)
+# Export for different platforms (requires export templates)
 godot --headless --export-release "Windows Desktop" builds/windows/SimonSnakeGame.exe
 godot --headless --export-release "Linux" builds/linux/SimonSnakeGame.x86_64
 godot --headless --export-release "Web" builds/web/index.html
 ```
 
-### GitHub Actions CI/CD
-The repository includes automated multi-platform Godot builds:
+### Testing
+```bash
+# Run Godot unit tests
+godot --headless --script test_runner.gd
+```
 
-- **Workflow File**: `.github/workflows/build-godot.yml`
-- **Triggers**: Push to main, PRs, releases, manual dispatch
-- **Permissions**: Requires `contents: write` for creating releases
-- **Output**: Multi-platform builds:
-  - Windows executable (`SimonSnakeGame.exe`)
-  - Linux executable (`SimonSnakeGame.x86_64`)
-  - Web version (`index.html` + assets)
-- **Distribution**: 
-  - Artifacts available in Actions tab for all builds
-  - Automatic "latest" release created/updated on each push to main
-  - Manual releases get executables attached when created properly
+## Architecture
 
-**Note**: The workflow automatically downloads Godot 4.4.1 and export templates for consistent builds.
+### Core Game Structure
+- **Main Scene**: `scenes/Main.tscn` - Entry point and UI container
+- **Game Logic**: `scripts/GameBoard.gd` - Central game controller with all mechanics
+- **Test Framework**: `test_runner.gd` orchestrates test suites in `test/` directory
 
-## Code Architecture
+### Key Systems
 
-### Main Game Scene (Godot)
-- **Main.tscn**: Root scene containing all game components
-- **GameBoard.gd**: Main game logic script (converted from SnakeGame class)
-- **Scene Structure**:
-  - GameBoard (Node2D) - core game logic
-  - PathRenderer (Node2D) - path visualization with plasma gradients
-  - Snake (Node2D) - snake body segments
-  - Food (ColorRect) - food item
-  - Obstacles (Node2D) - obstacle placement
-  - UI (CanvasLayer) - score, timer, and menu systems
+**Path Generation**: A* pathfinding algorithm generates routes from snake head to food, with plasma colormap visualization (blue → purple → red → yellow gradient)
 
-### Core Game Mechanics
-- **Path Following**: Snake must stay on generated path or game ends
-- **Path Generation**: Uses A* algorithm, regenerated after each food collection
-- **Plasma Path Coloring**: Blue (start) → Purple → Red → Yellow (end)
-- **Obstacles**: Optional randomly placed gray squares
-- **Speed Settings**: Slow/Medium/Fast with frame-based movement timing
+**Game States**: Menu system with obstacle/speed selection, 5-second countdown before path appears, enforced path-following mechanics
 
-### Key Data Structures
-- `self.snake`: List of (x, y) tuples representing snake segments
-- `self.path`: List of (x, y) tuples representing the path from snake to food
-- `self.obstacles`: Set of (x, y) tuples for obstacle positions
-- `self.food`: Single (x, y) tuple for food position
+**Visual Rendering**: Dynamic ColorRect-based rendering system for snake, food, obstacles, and path visualization with thick (3-cell) path width
 
-### Game Flow
-1. Initial setup with obstacle/speed selection
-2. 5-second delay before path generation
-3. Path appears with plasma coloring
-4. Snake must follow path to food
-5. Path regenerates after food collection
+**Input Handling**: Arrow keys + WASD for movement, anti-reversal logic, debounced direction changes (100ms), R for restart, ESC to quit
 
-## Dependencies
+### Project Structure
+- `scripts/GameBoard.gd` - Main game logic (575 lines)
+- `scenes/Main.tscn` - Scene composition 
+- `test/` - Unit test suites for game mechanics and pathfinding
+- `builds/` - Export targets for Windows/Linux/Web
+- `.github/workflows/build-godot.yml` - Automated CI/CD builds
 
-- **Godot 4.4.1**: Game engine and runtime
-- **GDScript**: Primary programming language (built into Godot)
+## Development Notes
 
+The game uses Godot's node system with ColorRect children for visual elements. All game state is centralized in GameBoard.gd. The pathfinding enforces gameplay constraints where stepping off the generated path ends the game.
 
-## File Structure
-
-- `project.godot`: Godot project configuration
-- `scenes/Main.tscn`: Main game scene
-- `scripts/GameBoard.gd`: Main game logic
-- `icon.svg`: Project icon
-- `test_runner.gd`: Main test runner script
-- `test_scene.tscn`: Test runner scene
-- `test/test_game_mechanics.gd`: Core game mechanics unit tests
-- `test/test_pathfinding.gd`: A* pathfinding algorithm tests
-- `.github/workflows/build-godot.yml`: Godot build pipeline
-
-## Testing Architecture
-
-The project uses GDScript-based unit tests that run directly in the Godot engine:
-
-- **test_runner.gd**: Orchestrates all test suites and provides summary output
-- **test_scene.tscn**: Scene file for running tests with visual feedback
-- **test/test_game_mechanics.gd**: Tests core gameplay (movement, collision, food generation, etc.)
-- **test/test_pathfinding.gd**: Tests A* algorithm implementation and path validation
-
-Tests cover:
-- Game initialization and state management
-- Snake movement and collision detection
-- Food and obstacle generation
-- A* pathfinding algorithm correctness
-- Path validation and plasma color generation
-- Performance benchmarks for pathfinding
+Export configuration creates single-file executables with embedded .pck files for distribution. CI/CD automatically builds releases for all platforms on push to main branch.

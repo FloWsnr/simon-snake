@@ -30,6 +30,7 @@ Built with Godot 4.4.1 and coded with Claude, so expect some errors or weird cho
    - **Arrow Keys**: Control the snake direction
    - **ESC**: Quit the game
    - **R**: Restart the game after a game over
+   - **S**: Change settings again
 
 ## Game Rules
 
@@ -90,9 +91,3 @@ godot --headless --export-release "Web" builds/web/index.html
 ```
 
 **Note**: The build configuration creates single-file executables with embedded .pck files for easier distribution (no separate .pck file required).
-
-### Testing
-```bash
-# Run the Godot project validation test
-python test_godot.py
-```
