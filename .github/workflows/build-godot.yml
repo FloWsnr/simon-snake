@@ -216,6 +216,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Delete existing latest release
+      if: github.event_name != 'release'
+      continue-on-error: true
+      uses: dev-drprasad/delete-tag-and-release@v1.1
+      with:
+        tag_name: latest
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: Upload to latest release
       if: github.event_name != 'release'
       uses: softprops/action-gh-release@v1
@@ -226,6 +234,8 @@ jobs:
           builds/linux/SimonSnakeGame.x86_64
           builds/web-build.tar.gz
         name: Latest Build
-        body: Automatically generated Godot build from latest commit
+        body: Automatically generated Godot build from commit ${{ github.sha }}
+        make_latest: true
+        prerelease: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
