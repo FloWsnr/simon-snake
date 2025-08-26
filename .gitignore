@@ -14,6 +14,7 @@ mono_crash.*.json
 # Godot auto-generated files
 *.tmp
 *.import
+*.uid
 
 # Build outputs
 builds/
