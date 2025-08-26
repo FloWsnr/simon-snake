@@ -23,7 +23,7 @@ var obstacle_choice_made: bool = false
 
 # Speed settings
 var speed_options = ["Slow", "Medium", "Fast"]
-var speed_delays = [8, 5, 3]  # frames between moves (higher = slower)
+var speed_delays = [30, 20, 12]  # frames between moves (higher = slower)
 var selected_speed: int = 1  # Default to Medium
 var move_counter: int = 0
 
@@ -41,6 +41,7 @@ var score: int = 0
 var start_time: float = 0.0
 var path_delay: float = 5.0  # 5 seconds
 var path_generated: bool = false
+var path_visual_updated: bool = false
 
 # Input handling
 var last_direction_change: float = 0.0
@@ -72,6 +73,7 @@ func initialize_game():
 	score = 0
 	start_time = 0.0
 	path_generated = false
+	path_visual_updated = false
 	move_counter = 0
 	last_direction_change = 0.0
 	
@@ -101,6 +103,8 @@ func handle_input():
 			waiting_for_obstacle_choice = false
 			waiting_for_speed_choice = true
 			show_speed_menu()
+		elif Input.is_action_just_pressed("settings_menu"):
+			show_obstacle_menu()  # Reset to obstacle menu (acts as settings reset)
 	
 	elif waiting_for_speed_choice:
 		if Input.is_action_just_pressed("speed_1"):
@@ -124,6 +128,12 @@ func handle_input():
 				restart_game()
 			else:
 				start_game()
+		elif Input.is_action_just_pressed("settings_menu"):
+			# Go back to obstacle choice to allow reconfiguration
+			waiting_for_speed_choice = false
+			waiting_for_obstacle_choice = true
+			obstacle_choice_made = false
+			show_obstacle_menu()
 	
 	# Game input handling
 	elif game_started and not game_over:
@@ -146,9 +156,14 @@ func handle_input():
 			last_direction_change = current_time_sec
 			print("Direction changed to: ", direction)
 	
-	# Restart game
-	if Input.is_action_just_pressed("restart_game") and game_over:
-		restart_game()
+	# Game over input handling
+	if game_over:
+		# Restart game
+		if Input.is_action_just_pressed("restart_game"):
+			restart_game()
+		# Settings menu
+		elif Input.is_action_just_pressed("settings_menu"):
+			show_settings_from_game_over()
 	
 	# Quit game
 	if Input.is_action_just_pressed("ui_cancel"):
@@ -171,8 +186,6 @@ func start_game():
 func restart_game():
 	snake = [Vector2(GRID_WIDTH / 2, GRID_HEIGHT / 2)]
 	direction = Vector2.RIGHT
-	obstacles = generate_obstacles()
-	food = generate_food()
 	path = []
 	game_over = false
 	score = 0
@@ -182,10 +195,14 @@ func restart_game():
 	move_counter = 0
 	game_started = true
 	path_generated = false
+	path_visual_updated = false
 	last_direction_change = 0.0
 	
-	# Clear visual elements
+	# Clear visual elements first
 	clear_visual_elements()
+	# Generate obstacles and food after clearing visuals
+	obstacles = generate_obstacles()
+	food = generate_food()
 	hide_all_menus()
 	setup_food_visual()
 	print("Game restarted!")
@@ -201,6 +218,16 @@ func update_game(delta):
 		generate_path_to_food()
 		path_generated = true
 		print("Initial path generated at 5-second mark from ", snake[0], " to ", food)
+	
+	# Update path visual only when needed
+	if path_generated and not path_visual_updated and (current_time - start_time) >= path_delay:
+		update_path_visual()
+		path_visual_updated = true
+	
+	# Update path visual for new food collection (immediate update)
+	if not path_visual_updated and path_generated and path.size() > 0:
+		update_path_visual()
+		path_visual_updated = true
 	
 	# Only move snake based on speed setting
 	move_counter += 1
@@ -230,8 +257,10 @@ func update_game(delta):
 		show_game_over_menu()
 		return
 	
-	# Check if off path (only after delay period and after path is generated)
-	if path_generated and not is_on_path(new_head):
+	# Check if off path (only after path is both generated AND visible)
+	# The path should not be enforced until it's actually displayed to the player
+	var path_is_visible = path_generated and (current_time - start_time) >= path_delay
+	if path_is_visible and not is_on_path(new_head):
 		game_over = true
 		show_game_over_menu()
 		print("Game over: Snake at ", new_head, " is off path")
@@ -244,6 +273,7 @@ func update_game(delta):
 		score += 10
 		food = generate_food()
 		generate_path_to_food()
+		path_visual_updated = false  # Mark for visual update on next frame
 		setup_food_visual()
 		# Snake grows by not removing tail
 	else:
@@ -332,7 +362,6 @@ func generate_path_to_food():
 			path = temp_path
 			path.reverse()
 			print("Path generated: from ", snake[0], " to ", food, ", path length: ", path.size())
-			update_path_visual()
 			return
 		
 		visited.append(current)
@@ -369,7 +398,6 @@ func generate_path_to_food():
 	# Fallback: direct path if no path found
 	print("Warning: No valid path found from ", start, " to ", target, ", using direct path")
 	path = [start, target]
-	update_path_visual()
 
 func get_plasma_color(position: Vector2) -> Color:
 	if path.size() == 0:
@@ -445,8 +473,10 @@ func update_path_visual():
 	for child in path_renderer.get_children():
 		child.queue_free()
 	
-	# Draw path with gradient
-	if path_generated and path.size() > 0:
+	# Draw path with gradient - only show if enough time has passed since game start
+	var current_time = Time.get_ticks_msec() / 1000.0
+	var path_should_be_visible = game_started and (current_time - start_time) >= path_delay
+	if path_should_be_visible and path.size() > 0:
 		for i in range(path.size()):
 			var path_pos = path[i]
 			for dx in range(-path_width, path_width + 1):
@@ -530,6 +560,14 @@ func show_speed_menu():
 func show_game_over_menu():
 	hide_all_menus()
 	game_over_menu.visible = true
+
+func show_settings_from_game_over():
+	# Reset choice flags to allow reconfiguration
+	waiting_for_obstacle_choice = true
+	waiting_for_speed_choice = false
+	obstacle_choice_made = false
+	show_obstacle_menu()
+	print("Settings menu opened from game over")
 
 func hide_all_menus():
 	obstacle_menu.visible = false

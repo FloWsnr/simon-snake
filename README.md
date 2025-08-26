@@ -89,6 +89,8 @@ godot --headless --export-release "Linux" builds/linux/SimonSnakeGame.x86_64
 godot --headless --export-release "Web" builds/web/index.html
 ```
 
+**Note**: The build configuration creates single-file executables with embedded .pck files for easier distribution (no separate .pck file required).
+
 ### Testing
 ```bash
 # Run the Godot project validation test

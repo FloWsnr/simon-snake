@@ -135,5 +135,5 @@ visible = false
 [node name="GameOverText" type="Label" parent="UI/MenuContainer/GameOverMenu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Game Over! Press R to restart or ESC to quit"
+text = "Game Over! Press R to restart, S for settings, or ESC to quit"
 horizontal_alignment = 1

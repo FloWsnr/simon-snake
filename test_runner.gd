@@ -1,5 +1,4 @@
-extends Node
-class_name TestRunner
+extends SceneTree
 
 # Main test runner that orchestrates all test suites
 var test_suites: Array = [
@@ -7,7 +6,7 @@ var test_suites: Array = [
 	"res://test/test_pathfinding.gd"
 ]
 
-func _ready():
+func _init():
 	print("🧪 Starting Godot Snake Game Test Suite")
 	print("=".repeat(50))
 	run_all_test_suites()
@@ -28,13 +27,13 @@ func run_all_test_suites():
 		
 		# Create instance of test suite
 		var suite_instance = suite_scene.new()
-		add_child(suite_instance)
+		root.add_child(suite_instance)
 		
 		# The test suite will run automatically in its _ready() function
 		completed_suites += 1
 	
 	# Wait a moment for all tests to complete
-	await get_tree().create_timer(0.5).timeout
+	await create_timer(0.5).timeout
 	
 	print("\n" + "=".repeat(50))
 	print("🏁 Test execution completed!")
@@ -43,4 +42,4 @@ func run_all_test_suites():
 	print("=".repeat(50))
 	
 	# Exit after all tests complete
-	get_tree().quit()
+	quit()
