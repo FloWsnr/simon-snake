@@ -182,6 +182,11 @@ jobs:
       run: |
         ./Godot_v4.4.1-stable_linux.x86_64 --headless --export-release "Web" builds/web/index.html
 
+    - name: Create Web Build Archive
+      run: |
+        cd builds
+        tar -czf web-build.tar.gz web/
+
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -207,7 +212,7 @@ jobs:
         files: |
           builds/windows/SimonSnakeGame.exe
           builds/linux/SimonSnakeGame.x86_64
-          builds/web/index.html
+          builds/web-build.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
@@ -219,7 +224,7 @@ jobs:
         files: |
           builds/windows/SimonSnakeGame.exe
           builds/linux/SimonSnakeGame.x86_64
-          builds/web/index.html
+          builds/web-build.tar.gz
         name: Latest Build
         body: Automatically generated Godot build from latest commit
       env:

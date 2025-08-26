@@ -74,10 +74,50 @@ If no releases are available, you can download the latest build:
 
 The game is built with Godot and runs natively on Windows, Linux, and Web browsers with no additional dependencies.
 
+## Web Version Setup
+
+The web version requires serving files through a web server due to browser CORS restrictions.
+
+### Running Web Version Locally
+After downloading and extracting `web-build.tar.gz`:
+
+**Option 1 - Python (recommended):**
+```bash
+cd web-build-folder
+python3 -m http.server 8000
+# Open http://localhost:8000 in your browser
+```
+
+**Option 2 - Node.js:**
+```bash
+cd web-build-folder
+npx serve .
+# Open the provided URL in your browser
+```
+
+**Option 3 - PHP:**
+```bash
+cd web-build-folder
+php -S localhost:8000
+# Open http://localhost:8000 in your browser
+```
+
+### Deploying to Web Server
+Upload all files from the web build to your web server root or subdirectory. All files are required:
+- `index.html` (main page)
+- `index.js` (Godot engine)
+- `index.wasm` (WebAssembly binary)
+- `index.pck` (game data)
+- `index.png` (splash screen)
+- `index.icon.png` (favicon)
+- `index.apple-touch-icon.png` (iOS icon)
+- Audio worklet files
+
 ## Troubleshooting
 
 - **Game doesn't start**: Make sure you have the correct executable permissions on Linux
-- **Web version issues**: Serve the web build from a local server (not file:// protocol)
+- **Web version "NetworkError"**: Must serve through web server, not open HTML file directly
+- **Web version blank/loading**: Ensure all files are uploaded and server supports WASM
 - **Performance issues**: Try adjusting the game speed setting in the initial menu
 
 ## Development
